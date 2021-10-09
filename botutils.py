@@ -1,5 +1,7 @@
 from datetime import datetime
+
 monthsDict = {
+
     'gennaio': 'January',
     'febbraio': 'February',
     'marzo': 'March',
@@ -28,6 +30,7 @@ monthsDict = {
 }
 
 daysDict = {
+
     'domenica': 'sunday',
     'lunedì': 'monday',
     'martedì': 'tuesday',
@@ -42,24 +45,24 @@ daysDict = {
     'gio': 'thu',
     'ven': 'fri',
     'sab': 'sat'
+
 }
 
 
 def getDateTimeObjectFromItalianText(italianDateText):
-    englishDateString = translateItalianDateToEng(italianDateText)
 
+    englishDateString = translateItalianDateToEng(italianDateText)
     # remove day text, we don't need it
     cleanEnglishDateTime = englishDateString.split(' ')
     cleanEnglishDateTime[1] = cleanEnglishDateTime[1].zfill(2)
     cleanEnglishDateTime.pop(0)
     cleanEnglishDateTime = ' '.join(cleanEnglishDateTime)
-
     cleanEnglishDateTimeObject = datetime.strptime(cleanEnglishDateTime, '%d %B %Y')
-
     return cleanEnglishDateTimeObject
 
 
 def translateItalianDateToEng(italianDateText):
+
     italianDateTextLCase = italianDateText.lower()
     wordsList = italianDateTextLCase.split(" ")
 
@@ -78,5 +81,6 @@ def translateItalianDateToEng(italianDateText):
 
 
 if __name__ == '__main__':
+
     str = "Venerdì 8 Ottobre 2021"
     getDateTimeObjectFromItalianText(str)

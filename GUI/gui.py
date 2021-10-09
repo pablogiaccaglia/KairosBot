@@ -5,39 +5,55 @@
 # Explicit imports to satisfy Flake8
 import datetime
 import threading
-from tkinter import Tk, Canvas, Entry, Button, PhotoImage, StringVar, END, ttk, Label, Frame, BOTH
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, StringVar, END, ttk, Label
 
 from tkcalendar import Calendar
-
 from GUI import guiutils
 from KairosBot import KairosBot
 
 
 class GUI:
 
-    def setUserData(self, id, password):
-        self.userId = id
+    def __init__(self):
+        self.POLLING_DELAY = 50  # ms
+        self.lock = threading.Lock()  # Lock for shared resources.
+        self.finished = False
+        self.ind = -1
+        self.window = Tk()
+        self.window.resizable(False, False)
+        self.userId = None
+        self.password = None
+        self.password_entry = None
+        self.id_entry = None
+        self.date = None
+        self.canvas = None
+        self.isBookingOk = False
+        self.cal = None
+
+    def setUserData(self, userId, password):
+        self.userId = userId
         self.password = password
 
-    def performInputAction(self, id, password, window):
-        window.destroy()
-        self.setUserData(id, password)
-        self.startGUI2()
+    def performInputAction(self, userId, password):
+        if guiutils.validateUserInput(userId, password):
+            self.setUserData(userId, password)
+            self.__startGUI2()
+        else:
+            self.__setDefaultInput()
+            self.window.update()
 
-    def performBookAction(self, window, cal):
-        window.destroy()
-        self.date = cal.selection_get()
-        self.startGUI3()
+    def performBookAction(self):
+        self.date = self.cal.selection_get()
+        self.__startGUI3()
 
     def startGUI1(self):
-        window = Tk()
 
-        window.geometry("464x853")
-        window.title("KairosBot")
-        window.configure(bg="#FFFFFF")
+        self.window.geometry("464x853")
+        self.window.title("KairosBot")
+        self.window.configure(bg="#FFFFFF")
 
-        canvas = Canvas(
-            window,
+        self.canvas = Canvas(
+            self.window,
             bg="#FFFFFF",
             height=853,
             width=464,
@@ -46,87 +62,88 @@ class GUI:
             relief="ridge"
         )
 
-        canvas.place(x=0, y=0)
+        self.canvas.place(x=0, y=0)
         image_image_1 = PhotoImage(
             file=guiutils.relative_to_assets("image_1.png"))
 
         smaller_image = image_image_1.subsample(5, 5)
 
-        image_1 = canvas.create_image(
+        self.canvas.create_image(
             220.0,
             430.0,
             image=smaller_image
         )
 
-        canvas.create_text(
-            219.5,
+        self.canvas.create_text(
+            220.5,
             411.0,
             anchor="nw",
-            text="Hi there!",
+            text="Ciao!",
             fill="#FFFFFF",
             font=("SFProDisplay Semibold", 20 * -1)
         )
 
-        canvas.create_text(
-            123.0,
+        self.canvas.create_text(
+            85.0,
             441.0,
             anchor="nw",
-            text="Let’s Get Started",
+            text="Accedi per prenotare",
             fill="#FFFFFF",
             font=("SFProDisplay Heavy", 34 * -1)
         )
 
-        entry_image_1 = PhotoImage(
+        id_entry_image = PhotoImage(
             file=guiutils.relative_to_assets("entry_1.png"))
-        entry_bg_1 = canvas.create_image(
+
+        self.canvas.create_image(
             235.0,
             556.0,
-            image=entry_image_1
+            image=id_entry_image
         )
 
-        entry1Var = StringVar()
+        IDEntryStringVar = StringVar()
 
-        entry_1 = Entry(
+        self.id_entry = Entry(
             bd=0,
             bg="#FFFFFF",
             highlightthickness=0,
-            textvariable=entry1Var
+            textvariable=IDEntryStringVar
         )
-        entry_1.place(
+        self.id_entry.place(
             x=100.0,
             y=519.0,
             width=268.0,
             height=72.0
         )
 
-        entry_1.insert(END, 'Student ID')
-        entry_1.bind("<Button-1>", guiutils.delete_text_on_callback)
+        self.id_entry.bind("<Button-1>", guiutils.delete_text_on_callback)
 
-        entry_image_2 = PhotoImage(
+        password_entry_image = PhotoImage(
             file=guiutils.relative_to_assets("entry_2.png"))
-        entry_bg_2 = canvas.create_image(
+        self.canvas.create_image(
             235.0,
             643.0,
-            image=entry_image_2
+            image=password_entry_image
         )
 
-        entry2Var = StringVar()
+        passwordEntryStringVar = StringVar()
 
-        entry_2 = Entry(
+        self.password_entry = Entry(
             bd=0,
             bg="#FFFFFF",
             highlightthickness=0,
-            textvariable=entry2Var,
+            textvariable=passwordEntryStringVar,
             show="*",
         )
-        entry_2.place(
+        self.password_entry.place(
             x=100.0,
             y=607.0,
             width=270.0,
             height=70.0
         )
-        entry_2.insert(END, 'password')
-        entry_2.bind("<Button-1>", guiutils.delete_text_on_callback)
+        self.password_entry.bind("<Button-1>", guiutils.delete_text_on_callback)
+
+        self.__setDefaultInput()
 
         button_image_1 = PhotoImage(
             file=guiutils.relative_to_assets("button.png"))
@@ -135,8 +152,9 @@ class GUI:
             image=button_image_1,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: self.performInputAction(entry1Var.get(), entry2Var.get(), window),
-            relief="flat"
+            command=lambda: self.performInputAction(IDEntryStringVar.get(), passwordEntryStringVar.get()),
+            relief="flat",
+            cursor="hand"
         )
 
         button_1.place(
@@ -146,59 +164,11 @@ class GUI:
             height=41.0
         )
 
-        window.resizable(False, False)
-        window.mainloop()
+        self.window.mainloop()
 
-    def startGUI2(self):
-        window = Tk()
+    def __startGUI2(self):
 
-        window.geometry("474x628")
-        window.configure(bg="#FFFFFF")
-
-        canvas = Canvas(
-            window,
-            bg="#FFFFFF",
-            height=628,
-            width=474,
-            bd=0,
-            highlightthickness=0,
-            relief="ridge"
-        )
-
-        canvas.place(x=0, y=0)
-        canvas.create_rectangle(
-            0.0,
-            0.0,
-            474.0,
-            628.0,
-            fill="#FFFFFF",
-            outline="")
-
-        canvas.create_text(
-            32.0,
-            32.0,
-            anchor="nw",
-            text="KairosBot",
-            fill="#000000",
-            font=("Montserrat Bold", 32 * -1)
-        )
-
-        canvas.create_rectangle(
-            0.0,
-            132.0,
-            474.0,
-            192.0,
-            fill="#FAFAFA",
-            outline="")
-
-        canvas.create_text(
-            32.0,
-            152.0,
-            anchor="nw",
-            text="Prenotazione lezioni dell’intera giornata",
-            fill="#000000",
-            font=("Roboto", 13 * -1)
-        )
+        self.__buildCommonGUIStructure()
 
         button_image_1 = PhotoImage(
             file=guiutils.relative_to_assets("button_book.png"))
@@ -206,8 +176,9 @@ class GUI:
             image=button_image_1,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: self.performBookAction(window, cal),
-            cursor="hand"
+            command=lambda: self.performBookAction(),
+            cursor="hand",
+            relief="flat"
         )
         button_1.place(
             x=47.0,
@@ -216,7 +187,7 @@ class GUI:
             height=44.0
         )
 
-        canvas.create_rectangle(
+        self.canvas.create_rectangle(
             0.0,
             132.0,
             474.0,
@@ -224,7 +195,7 @@ class GUI:
             fill="#F1F1F1",
             outline="")
 
-        canvas.create_text(
+        self.canvas.create_text(
             32.0,
             86.0,
             anchor="nw",
@@ -236,114 +207,73 @@ class GUI:
         today = datetime.date.today()
 
         mindate = today
-        maxdate = today + datetime.timedelta(days=6)
-        cal = Calendar(window, font="Arial 14", selectmode='day', locale='ita',
-                       mindate=mindate, maxdate=maxdate, disabledforeground='red', foreground='black',
-                       weekendbackground='white', disableddaybackground='gray',
-                       firstweekday="monday", cursor="hand")
-        cal.pack(padx=10, pady=200)
+        maxdate = today + datetime.timedelta(days=10)
+
+        if self.cal is not None:
+            self.cal.destroy()
+        self.cal = Calendar(self.window, font="Arial 14", selectmode='day', locale='ita',
+                            mindate=mindate, maxdate=maxdate, disabledforeground='red', foreground='black',
+                            weekendbackground='white', disableddaybackground='gray',
+                            firstweekday="monday", cursor="hand")
+        self.cal.pack(padx=10, pady=200)
 
         for i in range(6):
-            cal._week_nbs[i].destroy()
+            self.cal._week_nbs[i].destroy()  # evil trick going on here :)
 
-        s = ttk.Style(window)
+        s = ttk.Style(self.window)
         s.theme_use('classic')
 
-        window.resizable(False, False)
-        window.mainloop()
+        self.window.mainloop()
 
-    POLLING_DELAY = 50  # ms
-    lock = threading.Lock()  # Lock for shared resources.
-    finished = False
+    def __fix(self):
+        if self.lock.locked():
+            self.lock.release()
+            self.ind = -1
 
-    ind = -1
-
-    def fix(self, window):
-        global finished
         with self.lock:
-            finished = False
-        t = threading.Thread(target=self.book, args=(window,))
+            self.finished = False
+        t = threading.Thread(target=self.__book)
         t.daemon = True
-        self.check_status(window)  # Start polling.
+        self.__check_status()  # Start polling.
         t.start()
 
-    def check_status(self, window):
+    def __check_status(self):
         with self.lock:
-            if not finished:
+            if not self.finished:
                 self.ind = self.ind + 1
-                window.after(1, self.fun(self.ind, window))
-                window.update_idletasks()
-                window.after(self.POLLING_DELAY, self.check_status, window)  # Keep polling.
+                self.window.after(1, self.__fun(self.ind))
+                self.window.update_idletasks()
+                self.window.after(self.POLLING_DELAY, self.__check_status)  # Keep polling.
             else:
-                window.destroy()
+                if self.isBookingOk:
+                    self.__startGUI4()
+                else:
+                    self.__startGUI5()
 
-    def drawYellowBlock(self, index, window):
-        widget = Label(window, bg="#1F2732", width=1, height=1)
+    def __drawYellowBlock(self, index):
+        widget = Label(self.window, bg="#1F2732", width=1, height=1)
         widget.place(x=70 + index - 1 * 22, y=350)
 
-    def fun(self, j, window):
-        self.drawYellowBlock(j, window)
-        window.update_idletasks()
+    def __fun(self, j):
+        self.__drawYellowBlock(j)
+        self.window.update_idletasks()
 
-    def book(self, window):
-        kairosBot = KairosBot(self.userId, self.password)
-        window.after(2000, kairosBot.book(self.date))
-        global finished
+    def __book(self):
+        try:
+            kairosBot = KairosBot(self.userId, self.password)
+            self.window.after(2000, kairosBot.book(self.date))
+            self.isBookingOk = True
+        except Exception as e:
+            print(str(e))
+            self.isBookingOk = False
+
         with self.lock:
-            finished = True
+            self.finished = True
 
-    def startGUI3(self):
-        window = Tk()
+    def __startGUI3(self):
 
-        window.geometry("474x628")
-        window.configure(bg="#FFFFFF")
-
-        canvas = Canvas(
-            window,
-            bg="#FFFFFF",
-            height=628,
-            width=474,
-            bd=0,
-            highlightthickness=0,
-            relief="ridge"
-        )
-
-        canvas.place(x=0, y=0)
-        canvas.create_rectangle(
-            0.0,
-            0.0,
-            474.0,
-            628.0,
-            fill="#FFFFFF",
-            outline="")
-
-        canvas.create_text(
-            32.0,
-            32.0,
-            anchor="nw",
-            text="KairosBot",
-            fill="#000000",
-            font=("Montserrat Bold", 32 * -1)
-        )
-
-        canvas.create_rectangle(
-            0.0,
-            132.0,
-            474.0,
-            192.0,
-            fill="#FAFAFA",
-            outline="")
-
-        canvas.create_text(
-            32.0,
-            152.0,
-            anchor="nw",
-            text="Prenotazione lezioni dell’intera giornata",
-            fill="#000000",
-            font=("Roboto", 13 * -1)
-        )
-
-        canvas.create_rectangle(
+        self.__buildCommonGUIStructure()
+        self.canvas.create_rectangle(
             0.0,
             132.0,
             474.0,
@@ -351,7 +281,7 @@ class GUI:
             fill="#F1F1F1",
             outline="")
 
-        canvas.create_text(
+        self.canvas.create_text(
             32.0,
             86.0,
             anchor="nw",
@@ -360,7 +290,7 @@ class GUI:
             font=("Roboto", 16 * -1)
         )
 
-        canvas.create_text(
+        self.canvas.create_text(
             140.0,
             250.0,
             anchor="nw",
@@ -369,17 +299,202 @@ class GUI:
             font=("Montserrat Bold", 20 * -1)
         )
 
-        s = ttk.Style(window)
+        s = ttk.Style(self.window)
         s.theme_use('classic')
 
-        window.update()
-        self.fix(window)
+        self.__fix()
+        self.window.update()
+        self.window.mainloop()
 
-        window.mainloop()
+    def __startGUI4(self):
 
-        # update window to see animation
+        self.__buildCommonGUIStructure()
+        self.canvas.create_text(
+            100.0,
+            250.0,
+            anchor="nw",
+            text="Prenotazione lezioni completata",
+            fill="#000000",
+            font=("Montserrat Bold", 20 * -1)
+        )
 
-        # window.resizable(False, False)
+        button_image_1 = PhotoImage(
+            file=guiutils.relative_to_assets("button_close.png"))
+        button_1 = Button(
+            image=button_image_1,
+            borderwidth=0,
+            highlightthickness=0,
+            command=lambda: self.window.destroy(),
+            relief="flat"
+        )
+        button_1.place(
+            x=116.0,
+            y=524.0,
+            width=236.0,
+            height=44.0
+        )
+
+        self.canvas.create_text(
+            178.0,
+            534.0,
+            anchor="nw",
+            text="Chiudi KairosBot",
+            fill="#FFFFFF",
+            font=("Roboto", 16 * -1)
+        )
+
+        self.canvas.create_rectangle(
+            0.0,
+            132.0,
+            474.0,
+            133.0,
+            fill="#F1F1F1",
+            outline="")
+
+        self.canvas.create_text(
+            32.0,
+            86.0,
+            anchor="nw",
+            text="Prenotazione",
+            fill="#111111",
+            font=("Roboto", 16 * -1),
+        )
+        self.window.resizable(False, False)
+        self.window.mainloop()
+
+    def __startGUI5(self):
+        self.__buildCommonGUIStructure()
+
+        self.canvas.create_text(
+            107.0,
+            150.0,
+            anchor="nw",
+            text="Prenotazione non andata a buon fine  ",
+            fill="#111111",
+            font=("Roboto", 16 * -1)
+        )
+
+        button_image_1 = PhotoImage(
+            file=guiutils.relative_to_assets("button_retry.png"))
+        button_1 = Button(
+            image=button_image_1,
+            borderwidth=0,
+            highlightthickness=0,
+            command=lambda: self.__startGUI3(),
+            relief="flat"
+        )
+        button_1.place(
+            x=119.0,
+            y=430.0,
+            width=236.0,
+            height=44.0
+        )
+
+        self.button_image_2 = PhotoImage(
+            file=guiutils.relative_to_assets("button_change_date.png"))
+        button_2 = Button(
+            image=self.button_image_2,
+            borderwidth=0,
+            highlightthickness=0,
+            command=lambda: self.__startGUI2(),
+            relief="flat"
+        )
+        button_2.place(
+            x=119.0,
+            y=372.0,
+            width=236.0,
+            height=44.0
+        )
+
+        self.canvas.create_rectangle(
+            0.0,
+            132.0,
+            474.0,
+            133.0,
+            fill="#F1F1F1",
+            outline="")
+
+        self.canvas.create_text(
+            32.0,
+            86.0,
+            anchor="nw",
+            text="Prenotazione",
+            fill="#111111",
+            font=("Roboto", 16 * -1)
+        )
+
+        button_image_3 = PhotoImage(
+            file=guiutils.relative_to_assets("button_close.png"))
+        button_3 = Button(
+            image=button_image_3,
+            borderwidth=0,
+            highlightthickness=0,
+            command=lambda: self.window.destroy(),
+            relief="flat"
+        )
+        button_3.place(
+            x=119.0,
+            y=314.0,
+            width=236.0,
+            height=44.0
+        )
+        self.window.resizable(False, False)
+        self.window.mainloop()
+
+    def __setDefaultInput(self):
+        self.id_entry.delete(0, END)
+        self.password_entry.delete(0, END)
+        self.id_entry.insert(END, 'Student ID')
+        self.password_entry.insert(END, 'password')
+
+    def __buildCommonGUIStructure(self):
+        self.window.geometry("474x628")
+        self.window.configure(bg="#FFFFFF")
+
+        self.canvas.create_text(
+            32.0,
+            152.0,
+            anchor="nw",
+            text="Prenotazione lezioni dell’intera giornata",
+            fill="#000000",
+            font=("Roboto", 13 * -1)
+        )
+
+        self.canvas = Canvas(
+            self.window,
+            bg="#FFFFFF",
+            height=628,
+            width=474,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+
+        self.canvas.place(x=0, y=0)
+        self.canvas.create_rectangle(
+            0.0,
+            0.0,
+            474.0,
+            628.0,
+            fill="#FFFFFF",
+            outline="")
+
+        self.canvas.create_text(
+            32.0,
+            32.0,
+            anchor="nw",
+            text="KairosBot",
+            fill="#000000",
+            font=("Montserrat Bold", 32 * -1)
+        )
+
+        self.canvas.create_rectangle(
+            0.0,
+            132.0,
+            474.0,
+            192.0,
+            fill="#FAFAFA",
+            outline="")
 
 
 if __name__ == '__main__':
