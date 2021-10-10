@@ -79,7 +79,7 @@ class KairosBot:
                         self.__click(driver, closePopupButtonXpath)
 
             if not dateFound:
-                raise Exception("ciao")
+                raise Exception("Date not found")
 
             driver.quit()
 

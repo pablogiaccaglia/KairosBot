@@ -5,10 +5,11 @@
 # Explicit imports to satisfy Flake8
 import datetime
 import threading
-from tkinter import Tk, Canvas, Entry, Button, PhotoImage, StringVar, END, ttk, Label
-
+from tkinter import Tk, Canvas, Entry, PhotoImage, StringVar, END, ttk, Label, Button
+import functools
 from tkcalendar import Calendar
 from GUI import guiutils
+
 from KairosBot import KairosBot
 
 
@@ -34,7 +35,9 @@ class GUI:
         self.userId = userId
         self.password = password
 
-    def performInputAction(self, userId, password):
+    def performInputAction(self, userIdSVar, passwordSVar):
+        userId = userIdSVar.get()
+        password = passwordSVar.get()
         if guiutils.validateUserInput(userId, password):
             self.setUserData(userId, password)
             self.__startGUI2()
@@ -63,8 +66,9 @@ class GUI:
         )
 
         self.canvas.place(x=0, y=0)
+
         image_image_1 = PhotoImage(
-            file=guiutils.relative_to_assets("image_1.png"))
+            file=guiutils.relativeToAssets(guiutils.loginBackgroundRelPath))
 
         smaller_image = image_image_1.subsample(5, 5)
 
@@ -93,7 +97,7 @@ class GUI:
         )
 
         id_entry_image = PhotoImage(
-            file=guiutils.relative_to_assets("entry_1.png"))
+            file=guiutils.relativeToAssets(guiutils.usernameEntryRelPath))
 
         self.canvas.create_image(
             235.0,
@@ -116,10 +120,10 @@ class GUI:
             height=72.0
         )
 
-        self.id_entry.bind("<Button-1>", guiutils.delete_text_on_callback)
+        self.id_entry.bind("<Button-1>", guiutils.deleteTextOnCallback)
 
         password_entry_image = PhotoImage(
-            file=guiutils.relative_to_assets("entry_2.png"))
+            file=guiutils.relativeToAssets(guiutils.passwordEntryRelPath))
         self.canvas.create_image(
             235.0,
             643.0,
@@ -141,28 +145,20 @@ class GUI:
             width=270.0,
             height=70.0
         )
-        self.password_entry.bind("<Button-1>", guiutils.delete_text_on_callback)
+        self.password_entry.bind("<Button-1>", guiutils.deleteTextOnCallback)
+
+        loginButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.loginButtonRelPath))
+
+        guiutils.addButtonToWindow(
+            xPos=180.0,
+            yPos=704.0,
+            width=95.0,
+            height=41.0,
+            callback=functools.partial(self.performInputAction, userIdSVar=IDEntryStringVar, passwordSVar=passwordEntryStringVar),
+            buttonImage=loginButtonImage)
 
         self.__setDefaultInput()
-
-        button_image_1 = PhotoImage(
-            file=guiutils.relative_to_assets("button.png"))
-
-        button_1 = Button(
-            image=button_image_1,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.performInputAction(IDEntryStringVar.get(), passwordEntryStringVar.get()),
-            relief="flat",
-            cursor="hand"
-        )
-
-        button_1.place(
-            x=180.0,
-            y=704.0,
-            width=95.0,
-            height=41.0
-        )
 
         self.window.mainloop()
 
@@ -170,22 +166,16 @@ class GUI:
 
         self.__buildCommonGUIStructure()
 
-        button_image_1 = PhotoImage(
-            file=guiutils.relative_to_assets("button_book.png"))
-        button_1 = Button(
-            image=button_image_1,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.performBookAction(),
-            cursor="hand",
-            relief="flat"
-        )
-        button_1.place(
-            x=47.0,
-            y=522.0,
+        bookButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.bookButtonRelPath))
+
+        guiutils.addButtonToWindow(
+            xPos=47.0,
+            yPos=522.0,
             width=380.0,
-            height=44.0
-        )
+            height=44.0,
+            callback=self.performBookAction,
+            buttonImage=bookButtonImage)
 
         self.canvas.create_rectangle(
             0.0,
@@ -204,6 +194,15 @@ class GUI:
             font=("Roboto", 16 * -1)
         )
 
+        self.canvas.create_text(
+            148.0,
+            155.0,
+            anchor="nw",
+            text="Seleziona la data",
+            fill="#000000",
+            font=("Montserrat Bold", 20 * -1)
+        )
+
         today = datetime.date.today()
 
         mindate = today
@@ -215,7 +214,8 @@ class GUI:
                             mindate=mindate, maxdate=maxdate, disabledforeground='red', foreground='black',
                             weekendbackground='white', disableddaybackground='gray',
                             firstweekday="monday", cursor="hand")
-        self.cal.pack(padx=10, pady=200)
+
+        self.cal.grid(padx=110, pady=270)
 
         for i in range(6):
             self.cal._week_nbs[i].destroy()  # evil trick going on here :)
@@ -310,38 +310,47 @@ class GUI:
 
         self.__buildCommonGUIStructure()
         self.canvas.create_text(
-            100.0,
-            250.0,
+            148.0,
+            155.0,
             anchor="nw",
-            text="Prenotazione lezioni completata",
-            fill="#000000",
-            font=("Montserrat Bold", 20 * -1)
-        )
-
-        button_image_1 = PhotoImage(
-            file=guiutils.relative_to_assets("button_close.png"))
-        button_1 = Button(
-            image=button_image_1,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.window.destroy(),
-            relief="flat"
-        )
-        button_1.place(
-            x=116.0,
-            y=524.0,
-            width=236.0,
-            height=44.0
-        )
-
-        self.canvas.create_text(
-            178.0,
-            534.0,
-            anchor="nw",
-            text="Chiudi KairosBot",
-            fill="#FFFFFF",
+            text="Prenotazione completata",
+            fill="#111111",
             font=("Roboto", 16 * -1)
         )
+
+        retryButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.retryButtonRelPath))
+
+        guiutils.addButtonToWindow(
+            xPos=119.0,
+            yPos=430.0,
+            width=236.0,
+            height=4,
+            callback=self.__startGUI3,
+            buttonImage=retryButtonImage
+        )
+
+        changeDateButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.changeDateButtonRelPath))
+
+        guiutils.addButtonToWindow(
+            xPos=119.0,
+            yPos=372.0,
+            width=236.0,
+            height=44.0,
+            callback=self.__startGUI2,
+            buttonImage=changeDateButtonImage)
+
+        closeAppButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.closeAppButtonRelPath))
+
+        guiutils.addButtonToWindow(
+            xPos=119.0,
+            yPos=314.0,
+            width=236.0,
+            height=4,
+            callback=self.window.destroy(),
+            buttonImage=closeAppButtonImage)
 
         self.canvas.create_rectangle(
             0.0,
@@ -357,10 +366,26 @@ class GUI:
             anchor="nw",
             text="Prenotazione",
             fill="#111111",
-            font=("Roboto", 16 * -1),
+            font=("Roboto", 16 * -1)
         )
-        self.window.resizable(False, False)
-        self.window.mainloop()
+
+        self.canvas.create_text(
+            28.0,
+            228.0,
+            anchor="nw",
+            text="Lezioni prenotate",
+            fill="#000000",
+            font=("Inter Bold", 22 * -1)
+        )
+
+        self.canvas.create_text(
+            28.0,
+            206.0,
+            anchor="nw",
+            text="Posto a lezione",
+            fill="#77767E",
+            font=("Inter Regular", 13 * -1)
+        )
 
     def __startGUI5(self):
         self.__buildCommonGUIStructure()
@@ -374,36 +399,27 @@ class GUI:
             font=("Roboto", 16 * -1)
         )
 
-        button_image_1 = PhotoImage(
-            file=guiutils.relative_to_assets("button_retry.png"))
-        button_1 = Button(
-            image=button_image_1,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.__startGUI3(),
-            relief="flat"
-        )
-        button_1.place(
-            x=119.0,
-            y=430.0,
-            width=236.0,
-            height=44.0
-        )
+        retryButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.retryButtonRelPath))
 
-        self.button_image_2 = PhotoImage(
-            file=guiutils.relative_to_assets("button_change_date.png"))
-        button_2 = Button(
-            image=self.button_image_2,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.__startGUI2(),
-            relief="flat"
-        )
-        button_2.place(
-            x=119.0,
-            y=372.0,
+        guiutils.addButtonToWindow(
+            xPos=119.0,
+            yPos=430.0,
             width=236.0,
-            height=44.0
+            height=44.0,
+            callback=self.__startGUI3,
+            buttonImage=retryButtonImage)
+
+        changeDateButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.changeDateButtonRelPath))
+
+        guiutils.addButtonToWindow(
+            xPos=119.0,
+            yPos=387.0,
+            width=236.0,
+            height=44.0,
+            callback=self.__startGUI2,
+            buttonImage=changeDateButtonImage
         )
 
         self.canvas.create_rectangle(
@@ -423,21 +439,18 @@ class GUI:
             font=("Roboto", 16 * -1)
         )
 
-        button_image_3 = PhotoImage(
-            file=guiutils.relative_to_assets("button_close.png"))
-        button_3 = Button(
-            image=button_image_3,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.window.destroy(),
-            relief="flat"
-        )
-        button_3.place(
-            x=119.0,
-            y=314.0,
+        closeAppButtonImage = PhotoImage(
+            file=guiutils.relativeToAssets(guiutils.closeAppButtonRelPath))
+
+        guiutils.addButtonToWindow(
+            xPos=119.0,
+            yPos=314.0,
             width=236.0,
-            height=44.0
+            height=44.0,
+            callback=self.window.destroy,
+            buttonImage=closeAppButtonImage
         )
+
         self.window.resizable(False, False)
         self.window.mainloop()
 

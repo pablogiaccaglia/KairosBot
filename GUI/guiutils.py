@@ -1,17 +1,26 @@
 from pathlib import Path
+from tkinter import Button
 
 from validator_collection import checkers
 
-from GUI import gui
+## RELATIVE_PATHS
+bookButtonRelPath = "button_book.png"
+loginButtonRelPath = "button_login.png"
+changeDateButtonRelPath = "button_change_date.png"
+closeAppButtonRelPath = "button_close.png"
+retryButtonRelPath = "button_retry.png"
+loginBackgroundRelPath = "login_bg.png"
+passwordEntryRelPath = "password_entry.png"
+usernameEntryRelPath = "username_entry.png"
 
 
-def relative_to_assets(path: str) -> Path:
+def relativeToAssets(path: str) -> Path:
     OUTPUT_PATH = Path(__file__).parent
     ASSETS_PATH = OUTPUT_PATH / Path("./assets")
     return ASSETS_PATH / Path(path)
 
 
-def delete_text_on_callback(event):  # note that you must include the event as an arg, even if you don't use it.
+def deleteTextOnCallback(event):  # note that you must include the event as an arg, even if you don't use it.
     event.widget.delete(0, "end")
     return None
 
@@ -39,3 +48,21 @@ def validatePassword(password):
             and checkers.has_length(password, minimum=1, maximum=200)
     except:
         return False
+
+
+def addButtonToWindow(xPos, yPos, width, height, callback, buttonImage, cursor="hand"):
+    button = Button(
+        image=buttonImage,
+        borderwidth=0,
+        highlightthickness=0,
+        command=callback,
+        relief="flat",
+        cursor=cursor
+    )
+
+    button.place(
+        x=xPos,
+        y=yPos,
+        width=width,
+        height=height
+    )
