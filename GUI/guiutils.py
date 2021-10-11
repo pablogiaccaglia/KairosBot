@@ -1,7 +1,17 @@
+from enum import Enum
 from pathlib import Path
 from tkinter import Button
 
 from validator_collection import checkers
+
+
+class View(Enum):
+    LOGIN_VIEW = "loginView"
+    CALENDAR_VIEW = "calendarView"
+    BOOKING_VIEW = "bookingView"
+    BOOKING_FAILED_VIEW = "bookingFailedView"
+    BOOKING_OK_VIEW = "bookingOkView"
+
 
 ## RELATIVE_PATHS
 bookButtonRelPath = "button_book.png"
@@ -66,3 +76,5 @@ def addButtonToWindow(xPos, yPos, width, height, callback, buttonImage, cursor="
         width=width,
         height=height
     )
+
+    return button

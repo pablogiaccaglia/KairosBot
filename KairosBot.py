@@ -15,6 +15,7 @@ class KairosBot:
         self.username = username
         self.password = password
         self.bookingInfoList = []
+        self.bookingInfoDicts = []
 
     def book(self, dateToBook):
 
@@ -72,7 +73,8 @@ class KairosBot:
                     for link in lessonBookLinksList:
                         WebDriverWait(driver, 5).until(EC.visibility_of(link))
                         link.click()
-                        WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="popup_conferma_title"]/span[2]')))
+                        WebDriverWait(driver, 5).until(
+                            EC.visibility_of_element_located((By.XPATH, '//*[@id="popup_conferma_title"]/span[2]')))
                         bookingInfo = driver.find_element_by_xpath('//*[@id="popup_conferma_title"]/span[2]')
                         self.bookingInfoList.append(bookingInfo.text)
                         closePopupButtonXpath = '//*[@id="popup_conferma_buttons_row"]/button'
@@ -82,6 +84,9 @@ class KairosBot:
                 raise Exception("Date not found")
 
             driver.quit()
+
+            for info in self.bookingInfoList:
+                self.bookingInfoDicts.append(botutils.parseBookingInfo(info))
 
         except Exception as e:
             print(str(e))
