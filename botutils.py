@@ -122,7 +122,7 @@ def parseBookingInfo(bookingInfo):
     """
     bookingInfo = bookingInfo.split(')')[1]
     #                              date conversion from str to datetime <-(date string extracted)
-    infoDict['lessonDate'] = getDateTimeObjectFromItalianText(bookingInfo.split(',')[0])
+    infoDict['lessonDate'] = getDateTimeObjectFromItalianText(bookingInfo.split(',')[0]).day
 
     """ Progressive bookingInfo reduction to obtain needed info :
 

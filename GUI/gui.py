@@ -33,10 +33,13 @@ class GUI:
         }
         self.userId = None
         self.password = None
+        self.currentView = None
 
     def runView(self, view: View):
+        self.currentView.destroyWidgets()
         self.__buildCommonGUIStructure()
-        self.views[view].run()
+        self.currentView = self.views[view]
+        self.currentView.run()
 
     def start(self):
         self.window.title("KairosBot")
@@ -53,6 +56,7 @@ class GUI:
         )
 
         self.canvas.place(x=0, y=0)
+        self.currentView = self.views[View.LOGIN_VIEW]
         self.runView(View.LOGIN_VIEW)
 
     def __buildCommonGUIStructure(self):
@@ -101,11 +105,11 @@ class AbstractView(ABC):
         self.name = name
         self.gui = gui
         self.canvasItems = []
-        self.widgets = []
         self.texts = []
         self.rectangles = []
         self.buttons = []
         self.labelWidgets = []
+        self.widgets = [self.texts, self.rectangles, self.buttons, self.labelWidgets]
 
     def addWidget(self, widget: Widget):
         self.widgets.append(widget)
@@ -119,6 +123,17 @@ class AbstractView(ABC):
     def addLabelWidget(self, elem: Widget):
         self.labelWidgets.append(elem)
 
+    def destroyWidgets(self):
+        for widgetsList in self.widgets:
+            for widget in widgetsList:
+                widget.destroy()
+
+    def destroyCanvasItems(self):
+        for elem in self.canvasItems:
+            self.gui.canvas.delete(elem)
+
+
+
     @abstractmethod
     def run(self):
         pass
@@ -129,6 +144,7 @@ class LoginView(AbstractView):
     def __init__(self, gui: 'GUI'):
         super().__init__("loginView", gui)
         self.inputEntries = []
+        self.widgets.append(self.inputEntries)
         self.passwordEntry = None
         self.idEntry = None
 
@@ -273,8 +289,13 @@ class CalendarView(AbstractView):
 
     def __init__(self, gui: 'GUI'):
         super().__init__("calendarView", gui)
-        self.inputEntries = []
         self.cal = None
+
+    def destroyWidgets(self):
+        self.cal.destroy()
+        for widgetsList in self.widgets:
+            for widget in widgetsList:
+                widget.destroy()
 
     def __buildCalendar(self, mindate, maxdate):
         if self.cal is not None:
@@ -385,10 +406,10 @@ class BookingFailedView(AbstractView):
 
         changeDateButton = guiutils.addButtonToWindow(
             xPos=119.0,
-            yPos=377.0,
+            yPos=357.0,
             width=236.0,
             height=44.0,
-            callback=functools.partial(self.gui.runView, View.CALENDAR_VIEW_VIEW),
+            callback=functools.partial(self.gui.runView, View.CALENDAR_VIEW),
             buttonImage=changeDateButtonImage
         )
 
@@ -457,16 +478,17 @@ class BookingView(AbstractView):
                 self.gui.window.after(1, self.__fun(self.ind))
                 self.gui.window.update_idletasks()
                 self.gui.window.after(self.POLLING_DELAY, self.__check_status)  # Keep polling.
+
+        if self.finished:
+            if self.isBookingOk:
+                self.gui.runView(View.BOOKING_OK_VIEW),
             else:
-                if self.isBookingOk:
-                    self.gui.runView(View.BOOKING_OK_VIEW),
-                else:
-                    self.gui.runView(View.BOOKING_FAILED_VIEW),
+                self.gui.runView(View.BOOKING_FAILED_VIEW),
 
     def __book(self):
         try:
-            self.kairosBot = KairosBot(self.gui.userId, self.gui.password)
-            self.gui.window.after(2000, self.kairosBot.book(self.gui.date))
+            self.gui.kairosBot = KairosBot(self.gui.userId, self.gui.password)
+            self.gui.window.after(2000, self.gui.kairosBot.book(self.gui.date))
             self.isBookingOk = True
         except Exception as e:
             print(str(e))
@@ -486,6 +508,7 @@ class BookingView(AbstractView):
         t.daemon = True
         self.__check_status()  # Start polling.
         t.start()
+
 
     def run(self):
         rectangleElement = self.gui.canvas.create_rectangle(
@@ -535,7 +558,12 @@ class BookingOkView(AbstractView):
 
     def __buildTreeView(self):
         # Add a self.treeview widget
-        self.tree = ttk.Treeview(self.gui.window, column=("Corso", "Aula", "Orario", "Data"), show='headings', height=5)
+        self.tree = ttk.Treeview(
+            self.gui.window,
+            column=("Corso", "Aula", "Orario", "Data") ,
+            show='headings',
+            height=5,
+            font="Roboto")
         self.tree.column("# 1", anchor=CENTER)
         self.tree.heading("# 1", text="Corso")
         self.tree.column("# 2", anchor=CENTER)
@@ -551,6 +579,9 @@ class BookingOkView(AbstractView):
             self.__fillEntry(dict)
         self.tree.grid(padx=30, pady=270)
 
+        s = ttk.Style(self.gui.window)
+        s.theme_use('aqua')
+
     def __fillEntry(self, entry):
         self.tree.insert(
             '',
@@ -560,6 +591,9 @@ class BookingOkView(AbstractView):
         )
 
     def run(self):
+
+        self.gui.window.geometry("864x628")
+
         textElem1 = self.gui.canvas.create_text(
             148.0,
             155.0,
@@ -570,20 +604,6 @@ class BookingOkView(AbstractView):
         )
 
         self.addCanvasElement(textElem1)
-
-        retryButtonImage = PhotoImage(
-            file=guiutils.relativeToAssets(guiutils.retryButtonRelPath))
-
-        retryButton = guiutils.addButtonToWindow(
-            xPos=119.0,
-            yPos=430.0,
-            width=236.0,
-            height=4,
-            callback=functools.partial(self.gui.runView, View.BOOKING_VIEW),
-            buttonImage=retryButtonImage
-        )
-
-        self.addButtonElement(retryButton)
 
         changeDateButtonImage = PhotoImage(
             file=guiutils.relativeToAssets(guiutils.changeDateButtonRelPath))
@@ -614,7 +634,7 @@ class BookingOkView(AbstractView):
         rectElem = self.gui.canvas.create_rectangle(
             0.0,
             132.0,
-            474.0,
+            874.0,
             133.0,
             fill="#F1F1F1",
             outline="")
@@ -638,7 +658,7 @@ class BookingOkView(AbstractView):
             anchor="nw",
             text="Lezioni prenotate",
             fill="#000000",
-            font=("Inter Bold", 22 * -1)
+            font=("Roboto", 22 * -1)
         )
 
         self.addCanvasElement(textElem3)
@@ -649,7 +669,7 @@ class BookingOkView(AbstractView):
             anchor="nw",
             text="Posto a lezione",
             fill="#77767E",
-            font=("Inter Regular", 13 * -1)
+            font=("Roboto", 13 * -1)
         )
 
         self.addCanvasElement(textElem4)
