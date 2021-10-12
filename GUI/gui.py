@@ -73,10 +73,11 @@ class GUI:
         )
 
         self.canvas.place(x=0, y=0)
+
         self.canvas.create_rectangle(
             0.0,
             0.0,
-            474.0,
+            864.0,
             628.0,
             fill="#FFFFFF",
             outline="")
@@ -93,7 +94,7 @@ class GUI:
         self.canvas.create_rectangle(
             0.0,
             132.0,
-            474.0,
+            864.0,
             192.0,
             fill="#FAFAFA",
             outline="")
@@ -106,10 +107,9 @@ class AbstractView(ABC):
         self.gui = gui
         self.canvasItems = []
         self.texts = []
-        self.rectangles = []
         self.buttons = []
         self.labelWidgets = []
-        self.widgets = [self.texts, self.rectangles, self.buttons, self.labelWidgets]
+        self.widgets = [self.texts, self.buttons, self.labelWidgets]
 
     def addWidget(self, widget: Widget):
         self.widgets.append(widget)
@@ -131,8 +131,6 @@ class AbstractView(ABC):
     def destroyCanvasItems(self):
         for elem in self.canvasItems:
             self.gui.canvas.delete(elem)
-
-
 
     @abstractmethod
     def run(self):
@@ -331,16 +329,6 @@ class CalendarView(AbstractView):
 
         self.addButtonElement(bookButton)
 
-        rectangleElem = self.gui.canvas.create_rectangle(
-            0.0,
-            132.0,
-            474.0,
-            133.0,
-            fill="#F1F1F1",
-            outline="")
-
-        self.addCanvasElement(rectangleElem)
-
         textElem1 = self.gui.canvas.create_text(
             32.0,
             86.0,
@@ -354,7 +342,7 @@ class CalendarView(AbstractView):
 
         textElem2 = self.gui.canvas.create_text(
             148.0,
-            155.0,
+            145.0,
             anchor="nw",
             text="Seleziona la data",
             fill="#000000",
@@ -414,16 +402,6 @@ class BookingFailedView(AbstractView):
         )
 
         self.addButtonElement(changeDateButton)
-
-        rectangleElement = self.gui.canvas.create_rectangle(
-            0.0,
-            132.0,
-            474.0,
-            133.0,
-            fill="#F1F1F1",
-            outline="")
-
-        self.addCanvasElement(rectangleElement)
 
         textElem2 = self.gui.canvas.create_text(
             32.0,
@@ -509,17 +487,7 @@ class BookingView(AbstractView):
         self.__check_status()  # Start polling.
         t.start()
 
-
     def run(self):
-        rectangleElement = self.gui.canvas.create_rectangle(
-            0.0,
-            132.0,
-            474.0,
-            133.0,
-            fill="#F1F1F1",
-            outline="")
-
-        self.addCanvasElement(rectangleElement)
 
         textElem1 = self.gui.canvas.create_text(
             32.0,
@@ -560,10 +528,9 @@ class BookingOkView(AbstractView):
         # Add a self.treeview widget
         self.tree = ttk.Treeview(
             self.gui.window,
-            column=("Corso", "Aula", "Orario", "Data") ,
+            column=("Corso", "Aula", "Orario", "Data"),
             show='headings',
-            height=5,
-            font="Roboto")
+            height=5)
         self.tree.column("# 1", anchor=CENTER)
         self.tree.heading("# 1", text="Corso")
         self.tree.column("# 2", anchor=CENTER)
@@ -591,12 +558,12 @@ class BookingOkView(AbstractView):
         )
 
     def run(self):
-
         self.gui.window.geometry("864x628")
+        self.gui.canvas.config(width=864, height=628)
 
         textElem1 = self.gui.canvas.create_text(
-            148.0,
-            155.0,
+            342.0,
+            160.0,
             anchor="nw",
             text="Prenotazione completata",
             fill="#111111",
@@ -609,8 +576,8 @@ class BookingOkView(AbstractView):
             file=guiutils.relativeToAssets(guiutils.changeDateButtonRelPath))
 
         changeDateButton = guiutils.addButtonToWindow(
-            xPos=119.0,
-            yPos=372.0,
+            xPos=310.0,
+            yPos=532.0,
             width=236.0,
             height=44.0,
             callback=functools.partial(self.gui.runView, View.CALENDAR_VIEW),
@@ -622,24 +589,14 @@ class BookingOkView(AbstractView):
             file=guiutils.relativeToAssets(guiutils.closeAppButtonRelPath))
 
         closeAppButton = guiutils.addButtonToWindow(
-            xPos=119.0,
-            yPos=314.0,
+            xPos=310.0,
+            yPos=474.0,
             width=236.0,
             height=44.0,
             callback=self.gui.window.destroy,
             buttonImage=closeAppButtonImage)
 
         self.addButtonElement(closeAppButton)
-
-        rectElem = self.gui.canvas.create_rectangle(
-            0.0,
-            132.0,
-            874.0,
-            133.0,
-            fill="#F1F1F1",
-            outline="")
-
-        self.addCanvasElement(rectElem)
 
         textElem2 = self.gui.canvas.create_text(
             32.0,

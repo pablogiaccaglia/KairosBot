@@ -85,6 +85,9 @@ class KairosBot:
 
             driver.quit()
 
+            if len(self.bookingInfoList) == 0:
+                raise Exception("No available lessons to book")
+
             for info in self.bookingInfoList:
                 self.bookingInfoDicts.append(botutils.parseBookingInfo(info))
 
