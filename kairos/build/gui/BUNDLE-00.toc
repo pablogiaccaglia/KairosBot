@@ -1,1 +1,0 @@
-([('gui', '/Users/pablo/Desktop/kairosBot/kairos/dist/gui', 'EXECUTABLE')],)

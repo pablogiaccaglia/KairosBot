@@ -1,8 +1,5 @@
-import datetime
 import threading
-from tkinter import Tk, Canvas, Entry, PhotoImage, StringVar, END, ttk, Label, CENTER
-import functools
-from tkinter import Widget
+from tkinter import Tk, Canvas, Entry, PhotoImage, StringVar, END, ttk, Label, CENTER, Widget
 from abc import ABC, abstractmethod
 from tkcalendar import Calendar
 from kairos import guiutils
@@ -10,6 +7,8 @@ from kairos.bot.KairosBot import KairosBot
 from kairos.utils import relativeToAbsPath
 from kairos.guiutils import View
 from PIL import Image, ImageTk
+from functools import partial
+from datetime import date, timedelta
 
 
 class GUI:
@@ -60,7 +59,7 @@ class GUI:
         self.runView(View.LOGIN_VIEW)
 
     def __buildCommonGUIStructure(self):
-        self.window.geometry(guiutils.getWindowSizeAsString(guiutils.regularWindowWidth, guiutils.regularWindowWidth))
+        self.window.geometry(guiutils.getWindowSizeAsString(guiutils.regularWindowWidth, guiutils.regularWindowHeight))
         self.window.configure(bg="#FFFFFF")
 
         self.canvas.create_text(
@@ -170,7 +169,7 @@ class LoginView(AbstractView):
             self.gui.window.update()
 
     def run(self):
-        self.gui.window.geometry(guiutils.getWindowSizeAsString(guiutils.loginWindowWidth, guiutils.loginWindowWidth))
+        self.gui.window.geometry(guiutils.getWindowSizeAsString(guiutils.loginWindowWidth, guiutils.loginWindowHeight))
         image_image_1 = PhotoImage(
             file=relativeToAbsPath(guiutils.loginBackgroundRelPath))
 
@@ -275,7 +274,7 @@ class LoginView(AbstractView):
             yPos=704.0,
             width=95.0,
             height=41.0,
-            callback=functools.partial(self.__performInputAction, IDEntryStringVar, passwordEntryStringVar),
+            callback=partial(self.__performInputAction, IDEntryStringVar, passwordEntryStringVar),
             buttonImage=loginButtonImage)
 
         self.addButtonElement(loginButton)
@@ -349,10 +348,10 @@ class CalendarView(AbstractView):
 
         self.addCanvasElement(textElem2)
 
-        today = datetime.date.today()
+        today = date.today()
 
         mindate = today
-        maxdate = today + datetime.timedelta(days=10)
+        maxdate = today + timedelta(days=10)
 
         self.__buildCalendar(mindate, maxdate)
         self.gui.window.mainloop()
@@ -382,7 +381,7 @@ class BookingFailedView(AbstractView):
             yPos=430.0,
             width=236.0,
             height=44.0,
-            callback=functools.partial(self.gui.runView, View.BOOKING_VIEW),
+            callback=partial(self.gui.runView, View.BOOKING_VIEW),
             buttonImage=retryButtonImage)
 
         self.addButtonElement(retryButton)
@@ -395,7 +394,7 @@ class BookingFailedView(AbstractView):
             yPos=372.0,
             width=236.0,
             height=44.0,
-            callback=functools.partial(self.gui.runView, View.CALENDAR_VIEW),
+            callback=partial(self.gui.runView, View.CALENDAR_VIEW),
             buttonImage=changeDateButtonImage
         )
 
@@ -570,7 +569,7 @@ class BookingOkView(AbstractView):
         )
 
     def run(self):
-        self.gui.window.geometry(guiutils.getWindowSizeAsString(guiutils.wideWindowWidth, guiutils.wideWindowWidth))
+        self.gui.window.geometry(guiutils.getWindowSizeAsString(guiutils.wideWindowWidth, guiutils.wideWindowHeight))
         self.gui.canvas.config(width=864, height=628)
 
         textElem1 = self.gui.canvas.create_text(
@@ -592,7 +591,7 @@ class BookingOkView(AbstractView):
             yPos=532.0,
             width=236.0,
             height=44.0,
-            callback=functools.partial(self.gui.runView, View.CALENDAR_VIEW),
+            callback=partial(self.gui.runView, View.CALENDAR_VIEW),
             buttonImage=changeDateButtonImage)
 
         self.addButtonElement(changeDateButton)

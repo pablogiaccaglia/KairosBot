@@ -1,14 +1,10 @@
-import os
-import sys
-import time
-
 from selenium.webdriver.common.by import By
-from selenium import webdriver
+from selenium.webdriver import ChromeOptions, Chrome
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 import selenium.webdriver.support.expected_conditions as EC
-from kairos.bot import botutils
+from kairos.bot.botutils import getDateTimeObjectFromItalianText, parseBookingInfo
 from kairos.utils import relativeToAbsPath
 
 
@@ -22,15 +18,14 @@ class KairosBot:
 
     def book(self, dateToBook):
 
-        time.sleep(100)
         # chromedriver setup
-        chrome_options = webdriver.ChromeOptions()
+        chrome_options = ChromeOptions()
         # chrome_options.add_argument('--no-sandbox')
-        # chrome_options.add_argument("--headless")
-        # chrome_options.add_argument("--disable-gpu")
-        # chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
         path = relativeToAbsPath("chromedriver")
-        driver = webdriver.Chrome(executable_path=path, options=chrome_options)
+        driver = Chrome(executable_path=path, options=chrome_options)
 
         try:
             driver.get(
@@ -66,7 +61,7 @@ class KairosBot:
                 "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
 
             mainContainerXPath = '// *[ @ id = "prenotazioni_container"]'
-            WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.XPATH,mainContainerXPath)))
+            WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.XPATH, mainContainerXPath)))
             mainContainerWebElement = driver.find_element_by_xpath(mainContainerXPath)
             WebDriverWait(mainContainerWebElement, 5).until(
                 EC.visibility_of_element_located((By.CLASS_NAME, "box-header-big")))
@@ -75,7 +70,7 @@ class KairosBot:
             dateFound = False
 
             for dateBox in boxContainersList:
-                dateObject = botutils.getDateTimeObjectFromItalianText(dateBox.text).date()
+                dateObject = getDateTimeObjectFromItalianText(dateBox.text).date()
                 if dateObject == dateToBook:
                     dateFound = True
 
@@ -104,11 +99,11 @@ class KairosBot:
 
             driver.quit()
 
-            #  if len(self.bookingInfoList) == 0:
-            #      raise Exception("No available lessons to book")
+            if len(self.bookingInfoList) == 0:
+                raise Exception("No available lessons to book")
 
             for info in self.bookingInfoList:
-                self.bookingInfoDicts.append(botutils.parseBookingInfo(info))
+                self.bookingInfoDicts.append(parseBookingInfo(info))
 
         except Exception as e:
             if driver is not None:
