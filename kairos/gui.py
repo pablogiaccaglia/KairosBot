@@ -22,6 +22,7 @@ class GUI:
         self.kairosBot = None
         self.views = {
             View.LOGIN_VIEW: LoginView(self),
+            View.OPTIONS_VIEW: OptionsView(self),
             View.CALENDAR_VIEW: CalendarView(self),
             View.BOOKING_VIEW: BookingView(self),
             View.BOOKING_FAILED_VIEW: BookingFailedView(self),
@@ -139,7 +140,7 @@ class AbstractView(ABC):
 class LoginView(AbstractView):
 
     def __init__(self, gui: 'GUI'):
-        super().__init__("loginView", gui)
+        super().__init__("LoginView", gui)
         self.inputEntries = []
         self.widgets.append(self.inputEntries)
         self.passwordEntry = None
@@ -282,10 +283,28 @@ class LoginView(AbstractView):
         self.gui.window.mainloop()
 
 
+class OptionsView(AbstractView):
+
+    def __init__(self, gui: 'GUI'):
+        super().__init__("OptionsView", gui)
+
+    def run(self):
+        pass
+
+
+class CalTimerView(AbstractView):
+
+    def __init__(self, gui: 'GUI'):
+        super().__init__("CalTimerView", gui)
+
+    def run(self):
+        pass
+
+
 class CalendarView(AbstractView):
 
     def __init__(self, gui: 'GUI'):
-        super().__init__("calendarView", gui)
+        super().__init__("CalendarView", gui)
         self.cal = None
 
     def destroyWidgets(self):
@@ -359,7 +378,7 @@ class CalendarView(AbstractView):
 
 class BookingFailedView(AbstractView):
     def __init__(self, gui: 'GUI'):
-        super().__init__("bookingFailedView", gui)
+        super().__init__("BookingFailedView", gui)
 
     def run(self):
         textElem1 = self.gui.canvas.create_text(
@@ -431,7 +450,7 @@ class BookingFailedView(AbstractView):
 class BookingView(AbstractView):
 
     def __init__(self, gui: 'GUI'):
-        super().__init__("bookingView", gui)
+        super().__init__("BookingView", gui)
         self.POLLING_DELAY = 50  # ms
         self.lock = threading.Lock()  # Lock for shared resources.
         self.finished = False
@@ -529,7 +548,7 @@ class BookingView(AbstractView):
 
 class BookingOkView(AbstractView):
     def __init__(self, gui: 'GUI'):
-        super().__init__("bookingOkView", gui)
+        super().__init__("BookingOkView", gui)
         self.tree = None
 
     def destroyWidgets(self):

@@ -48,5 +48,5 @@ exe = EXE(pyz,
           console=False )
 app = BUNDLE(exe,
              name='gui.app',
-             icon=None,
+             icon='kairosbot.ico',
              bundle_identifier=None)

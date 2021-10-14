@@ -4,11 +4,13 @@ from validator_collection import checkers
 
 
 class View(Enum):
-    LOGIN_VIEW = "loginView"
-    CALENDAR_VIEW = "calendarView"
-    BOOKING_VIEW = "bookingView"
-    BOOKING_FAILED_VIEW = "bookingFailedView"
-    BOOKING_OK_VIEW = "bookingOkView"
+    LOGIN_VIEW = "LoginView"
+    OPTIONS_VIEW = "OptionsView"
+    CAL_TIMER_VIEW = "CalTimerView"
+    CALENDAR_VIEW = "CalendarView"
+    BOOKING_VIEW = "BookingView"
+    BOOKING_FAILED_VIEW = "BookingFailedView"
+    BOOKING_OK_VIEW = "BookingOkView"
 
 
 ## RELATIVE_PATHS
